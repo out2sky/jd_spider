@@ -43,6 +43,7 @@ class Goods:
         self.good_info_dic = {}
 
     def find_attr(self, attr):
+        result = '无'
         try:
             if attr == GOOD_LABEL[0]:
                 # 商品编号
@@ -77,7 +78,7 @@ class Goods:
         return self.good_info_dic
 
 
-def get_html(url, currentPage, pageSize):
+def get_html(url, current_page, page_size):
     # 模拟浏览器访问
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
@@ -85,9 +86,9 @@ def get_html(url, currentPage, pageSize):
                       'Chrome/81.0.4044.138 Safari/537.36',
         'accept-language': 'zh-CN,zh;q=0.9'
     }
-    print("--> 正在获取网站第 " + str(currentPage) + "页信息")
-    if currentPage != 1:
-        url = url + '&page=' + str(currentPage) + '&s=' + str(pageSize) + '&click=0'
+    print("--> 正在获取网站第 " + str(current_page) + "页信息")
+    if current_page != 1:
+        url = url + '&page=' + str(current_page) + '&s=' + str(page_size) + '&click=0'
 
     response = requests.get(url, headers=headers)  # 请求访问网站
     if response.status_code == 200:
@@ -107,8 +108,8 @@ if __name__ == '__main__':
     total = input('请输入需要爬取页数: ')
     page = {
         'total': 0,  # 总页数
-        'currentPage': 1,  # 当前页数
-        'pageSize': 0  # 每页显示多少条
+        'current_page': 1,  # 当前页数
+        'page_size': 0  # 每页显示多少条
     }
     if not total.isdigit():
         print("非法字符，程序退出！")
@@ -117,10 +118,11 @@ if __name__ == '__main__':
     page['total'] = eval(total)
     for i in range(page['total']):
         # 初始化BeautifulSoup库,并设置解析器
-        soup = BeautifulSoup(get_html(search_url, page['currentPage'], page['currentPage'] * page['pageSize']), 'lxml')
+        soup = BeautifulSoup(get_html(search_url,
+                                      page['current_page'], page['current_page'] * page['page_size']), 'lxml')
         # 商品列表
         goods_list = soup.find_all('li', class_='gl-item')
-        print("分析到第" + str(page['currentPage']) + '页共有' + str(len(goods_list)) + '条商品信息')
+        print("分析到第" + str(page['current_page']) + '页共有' + str(len(goods_list)) + '条商品信息')
         for li in goods_list:  # 遍历父节点
             goods = Goods(li)
             # 添加信息
@@ -130,7 +132,7 @@ if __name__ == '__main__':
             # 写入excel
             excel.write_content(good_info)
 
-        page['currentPage'] = page['currentPage'] + 1
-        page['pageSize'] = len(goods_list) * page['currentPage']
+        page['current_page'] = page['current_page'] + 1
+        page['page_size'] = len(goods_list) * page['current_page']
 
     excel.save_file('jd_data.xls')
